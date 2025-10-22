@@ -1,0 +1,110 @@
+﻿@model GymOCommunity.ViewModels.UserProfileViewModel
+
+@{
+    ViewData["Title"] = $"Trang cá nhân - {Model.User?.UserName}";
+}
+
+<div class="container mt-4">
+    <!-- Thông tin người dùng -->
+    <div class="profile-header mb-4 d-flex">
+        <div class="avatar-container me-4">
+            @if (!string.IsNullOrEmpty(Model.AvatarUrl))
+            {
+                <img src="@Model.AvatarUrl" alt="Avatar" class="profile-avatar rounded-circle border" style="width: 120px; height: 120px; object-fit: cover;" />
+            }
+            else
+            {
+                <div class="profile-avatar-placeholder bg-secondary text-white d-flex align-items-center justify-content-center rounded-circle" style="width: 120px; height: 120px;">
+                    Ảnh đại diện
+                </div>
+            }
+        </div>
+        <div class="profile-info">
+            <h2>@Model.FullName</h2>
+            <p>Email: @Model.Email</p>
+
+            @if (!string.IsNullOrEmpty(Model.Location))
+            {
+                <p>Địa điểm: @Model.Location</p>
+            }
+
+            @if (!string.IsNullOrEmpty(Model.Bio))
+            {
+                <p>Tiểu sử: @Model.Bio</p>
+            }
+
+            <a asp-action="Edit" class="btn btn-outline-primary mt-2">Chỉnh sửa thông tin</a>
+        </div>
+    </div>
+
+    <!-- Tabs: Bài viết & Bài chia sẻ -->
+    <ul class="nav nav-tabs" id="profileTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="posts-tab" data-bs-toggle="tab" data-bs-target="#posts" type="button" role="tab">Bài viết</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="shared-tab" data-bs-toggle="tab" data-bs-target="#shared" type="button" role="tab">Bài chia sẻ</button>
+        </li>
+    </ul>
+
+    <div class="tab-content mt-3">
+        <!-- Bài viết -->
+        <div class="tab-pane fade show active" id="posts" role="tabpanel" aria-labelledby="posts-tab">
+            @if (Model.Posts != null && Model.Posts.Any())
+            {
+                foreach (var post in Model.Posts)
+                {
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">@post.Title</h5>
+                            <p>@post.Content</p>
+                            @if (!string.IsNullOrEmpty(post.ImageUrl))
+                            {
+                                <img src="@post.ImageUrl" class="img-fluid rounded mb-2" />
+                            }
+                            <a href="/Posts/Details/@post.Id" class="btn btn-sm btn-outline-secondary text-white">Xem chi tiết</a>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="alert alert-info">Chưa có bài viết nào.</div>
+            }
+        </div>
+
+        <!-- Bài chia sẻ -->
+        <div class="tab-pane fade" id="shared" role="tabpanel" aria-labelledby="shared-tab">
+            @if (Model.SharedPosts != null && Model.SharedPosts.Any())
+            {
+                foreach (var shared in Model.SharedPosts)
+                {
+                    var p = shared.OriginalPost;
+                    if (p == null) continue;
+
+                    <div class="card mb-3 border border-primary">
+                        <div class="card-body">
+                            <small class="text-muted">Đã chia sẻ từ @p.User?.UserName</small>
+                            <h5 class="card-title">@p.Title</h5>
+                            <p>@p.Content</p>
+                            @if (!string.IsNullOrEmpty(p.ImageUrl))
+                            {
+                                <img src="@p.ImageUrl" class="img-fluid rounded mb-2" />
+                            }
+                            <p class="text-muted">Chia sẻ lúc: @shared.SharedAt.ToString("dd/MM/yyyy HH:mm")</p>
+                            @if (!string.IsNullOrEmpty(shared.Note))
+                            {
+                                <p><strong>Lời nhắn:</strong> @shared.Note</p>
+                            }
+                            <a href="/Posts/Details/@p.Id" class="btn btn-outline-primary btn-sm">Xem bài gốc</a>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="alert alert-info">Chưa chia sẻ bài viết nào.</div>
+            }
+        </div>
+    </div>
+</div>

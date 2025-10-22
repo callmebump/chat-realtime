@@ -1,0 +1,394 @@
+﻿@{
+    ViewData["Title"] = "Chat Realtime";
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"] - GymOCommunity</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <style>
+        body {
+            background-color: #0b1622;
+            color: #fff;
+            font-family: "Segoe UI", sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .chat-container {
+            width: 1000px;
+            height: 650px;
+            background: #1c2633;
+            border-radius: 20px;
+            display: flex;
+            overflow: hidden;
+            box-shadow: 0 0 25px rgba(0,0,0,0.5);
+        }
+
+        .sidebar {
+            width: 30%;
+            background: #15202b;
+            padding: 20px;
+            border-right: 1px solid #2b3945;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar h3 {
+            color: #00bfff;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .room {
+            padding: 10px;
+            background: #22303c;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .room:hover, .room.active {
+            background: #0078ff;
+            color: #fff;
+        }
+
+        #userList .user {
+            padding: 8px;
+            background: #22303c;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            text-align: center;
+            transition: 0.2s;
+        }
+
+        #userList .user:hover {
+            background: #2b3945;
+        }
+
+        .chat-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            background: #192734;
+            padding: 15px 20px;
+            border-bottom: 1px solid #2b3945;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .chat-header h2 {
+            font-size: 20px;
+            color: #00bfff;
+            margin: 0;
+        }
+
+        .chat-box {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            scroll-behavior: smooth;
+        }
+
+        .chat-message {
+            display: flex;
+            align-items: flex-end;
+        }
+
+        .my-message {
+            justify-content: flex-end;
+        }
+
+        .bubble {
+            max-width: 60%;
+            padding: 10px 14px;
+            border-radius: 18px;
+            font-size: 15px;
+            line-height: 1.4;
+            position: relative;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .my-message .bubble {
+            background: linear-gradient(135deg, #0084ff, #0078ff);
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+
+        .other-message .bubble {
+            background: #2f3641;
+            color: #e4e6eb;
+            border-bottom-left-radius: 5px;
+        }
+
+        .time {
+            font-size: 12px;
+            color: #ccc;
+            margin-top: 3px;
+            text-align: right;
+        }
+
+        .chat-footer {
+            padding: 12px 20px;
+            background: #192734;
+            border-top: 1px solid #2b3945;
+            display: flex;
+            align-items: center;
+        }
+
+        .chat-footer input {
+            flex: 1;
+            background: #22303c;
+            border: none;
+            color: white;
+            padding: 12px;
+            border-radius: 20px;
+            outline: none;
+        }
+
+        .chat-footer button {
+            background: #00bfff;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 50%;
+            margin-left: 10px;
+            cursor: pointer;
+            color: white;
+            font-size: 18px;
+            transition: background 0.2s;
+        }
+
+        .chat-footer button:hover {
+            background: #0078ff;
+        }
+
+        .upload-btn {
+            background: #22303c;
+            border-radius: 50%;
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            cursor: pointer;
+            color: #00bfff;
+            transition: 0.2s;
+        }
+
+        .upload-btn:hover {
+            background: #2b3945;
+            color: #fff;
+        }
+
+        .system-message {
+            text-align: center;
+            color: #00bfff;
+            font-style: italic;
+            margin: 8px 0;
+            font-size: 14px;
+            opacity: 0.85;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="chat-container">
+        <div class="sidebar">
+            <h3>🏠 Chọn phòng</h3>
+            <div id="roomList"></div>
+
+            <h3>👥 Người trong phòng</h3>
+            <div id="userList"></div>
+        </div>
+
+        <div class="chat-main">
+            <div class="chat-header">
+                <h2 id="roomName">Chưa chọn phòng</h2>
+            </div>
+
+            <div class="chat-box" id="messages"></div>
+
+            <div class="chat-footer">
+                <input type="text" id="message" placeholder="Nhập tin nhắn..." disabled />
+                <button id="sendBtn" disabled><i class="fa-solid fa-paper-plane"></i></button>
+                <label for="fileInput" class="upload-btn" title="Gửi file, ảnh, video">
+                    <i class="fa-solid fa-paperclip"></i>
+                </label>
+                <input type="file" id="fileInput" accept="image/*,video/*,.pdf,.doc,.docx,.zip" hidden />
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script>
+        const username = "@ViewBag.Username" || "Khách";
+        let room = null;
+        const socket = io("http://localhost:3003", { transports: ["websocket"], reconnection: true });
+        const chatBox = document.getElementById("messages");
+        const msgInput = document.getElementById("message");
+        const sendBtn = document.getElementById("sendBtn");
+
+        const rooms = [
+            { name: "Gym 💪" },
+            { name: "Dinh dưỡng 🥗" },
+            { name: "Tập luyện 🏋️" },
+            { name: "Tư vấn 💬" },
+            { name: "Giải trí 🎮" }
+        ];
+
+        const roomList = document.getElementById("roomList");
+        rooms.forEach(r => {
+            const div = document.createElement("div");
+            div.className = "room";
+            div.textContent = r.name;
+            div.onclick = () => joinRoom(r.name, div);
+            roomList.appendChild(div);
+        });
+
+        socket.on("connect", () => console.log("✅ Kết nối thành công"));
+
+        function joinRoom(roomName, element) {
+            if (room) socket.emit("leave_room", { username, room });
+            room = roomName;
+            document.getElementById("roomName").textContent = "Phòng: " + room;
+            chatBox.innerHTML = "";
+            socket.emit("join_room", { username, room });
+
+            msgInput.disabled = false;
+            sendBtn.disabled = false;
+            document.querySelectorAll(".room").forEach(el => el.classList.remove("active"));
+            element.classList.add("active");
+
+            const saved = JSON.parse(localStorage.getItem("chatHistory_" + room)) || [];
+            saved.forEach(m => appendMessage(m.username, m.message, m.sentAt));
+        }
+
+        socket.on("receive_message", data => {
+            if (data.room !== room) return;
+            appendMessage(data.username, data.message, data.sentAt);
+
+            let chat = JSON.parse(localStorage.getItem("chatHistory_" + room)) || [];
+            chat.push(data);
+            if (chat.length > 50) chat = chat.slice(-50);
+            localStorage.setItem("chatHistory_" + room, JSON.stringify(chat));
+        });
+
+        function appendMessage(user, msg, time) {
+            const div = document.createElement("div");
+            div.classList.add("chat-message", user === username ? "my-message" : "other-message");
+            div.innerHTML = `
+                <div class="bubble">
+                    <b>${user === username ? "Bạn" : user}</b><br>
+                    ${msg}
+                    <div class="time">${new Date(time || Date.now()).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
+                </div>`;
+            chatBox.appendChild(div);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        socket.on("user_joined", msg => {
+            const message = document.createElement("div");
+            message.classList.add("system-message");
+            message.innerText = `🔥 ${msg}`;
+            chatBox.appendChild(message);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        });
+
+        socket.on("user_left", msg => {
+            const message = document.createElement("div");
+            message.classList.add("system-message");
+            message.innerText = `👋 ${msg}`;
+            chatBox.appendChild(message);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        });
+
+        socket.on("update_user_list", users => {
+            console.log("📋 update_user_list:", users);
+            const list = document.getElementById("userList");
+            if (!list) return;
+            list.innerHTML = users.length > 0
+                ? users.map(u => `<div class="user">${u}</div>`).join("")
+                : `<div class="user text-muted">Không có ai trong phòng</div>`;
+        });
+
+        // 🧠 Lắng nghe thông báo hệ thống (tham gia / rời phòng)
+socket.on("system_message", (data) => {
+    const message = document.createElement("div");
+    message.classList.add("system-message");
+
+    if (data.type === "join") {
+        message.innerHTML = `🔥 <b>${data.username}</b> đã tham gia phòng!`;
+    } else if (data.type === "leave") {
+        message.innerHTML = `👋 <b>${data.username}</b> đã rời khỏi phòng!`;
+    } else {
+        message.innerHTML = `ℹ️ ${data.text}`;
+    }
+
+    chatBox.appendChild(message);
+    chatBox.scrollTop = chatBox.scrollHeight;
+});
+
+        sendBtn.addEventListener("click", sendMessage);
+        msgInput.addEventListener("keypress", e => { if (e.key === "Enter") sendMessage(); });
+
+        function sendMessage() {
+            const msg = msgInput.value.trim();
+            if (!msg || !room) return;
+            socket.emit("send_message", { username, room, message: msg });
+            msgInput.value = "";
+        }
+
+        const fileInput = document.getElementById("fileInput");
+        fileInput.addEventListener("change", async e => {
+            const file = e.target.files[0];
+            if (!file || !room) return;
+            const formData = new FormData();
+            formData.append("file", file);
+
+            try {
+                const res = await fetch("http://localhost:3003/upload", { method: "POST", body: formData });
+                const data = await res.json();
+                const fileUrl = data.url;
+                let message = "";
+
+                if (file.type.startsWith("image/")) message = `<img src="${fileUrl}" class="chat-img" alt="image" />`;
+                else if (file.type.startsWith("video/")) message = `<video src="${fileUrl}" controls class="chat-video"></video>`;
+                else message = `<a href="${fileUrl}" target="_blank">📄 ${file.name}</a>`;
+
+                socket.emit("send_message", { username, room, message });
+            } catch (err) {
+                alert("❌ Không thể gửi file!");
+                console.error(err);
+            }
+        });
+
+        const style = document.createElement("style");
+        style.innerHTML = `
+            .chat-img, .chat-video {
+                max-width: 250px;
+                border-radius: 10px;
+                margin-top: 5px;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

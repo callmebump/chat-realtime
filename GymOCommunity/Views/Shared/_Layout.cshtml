@@ -1,0 +1,451 @@
+﻿@using System.Security.Claims
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - GymOCommunity</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/GymOCommunity.styles.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
+
+    <style>
+        /* Giao diện trang chủ */
+        .navbar {
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-brand {
+            transition: transform 0.3s ease;
+        }
+
+            .navbar-brand:hover {
+                transform: scale(1.05);
+            }
+
+        .navbar-nav .nav-link {
+            position: relative;
+            padding: 0.5rem 1rem;
+            margin: 0 0.25rem;
+            transition: all 0.3s ease;
+        }
+
+            .navbar-nav .nav-link::after {
+                content: '';
+                position: absolute;
+                width: 0;
+                height: 2px;
+                bottom: 0;
+                left: 50%;
+                transform: translateX(-50%);
+                transition: width 0.3s ease;
+            }
+
+            .navbar-nav .nav-link:hover::after,
+            .navbar-nav .nav-link.active::after {
+                width: 70%;
+            }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 8px;
+        }
+
+        .dropdown-toggle::after {
+            display: none;
+        }
+
+        .dropdown-menu {
+            min-width: 200px;
+        }
+
+        .dropdown-item i {
+            width: 20px;
+            text-align: center;
+            margin-right: 8px;
+        }
+
+        /* thông báo màu mè */
+        .notification-dropdown {
+            width: 350px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .notification-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+            cursor: pointer;
+        }
+
+            .notification-item.unread {
+                background-color: rgba(220, 53, 69, 0.1);
+            }
+
+        .notification-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 12px;
+        }
+
+        .notification-content {
+            flex: 1;
+        }
+
+        .notification-time {
+            font-size: 0.8rem;
+        }
+
+        #notificationBadge {
+            font-size: 0.6rem;
+            padding: 3px 6px;
+            display: none;
+        }
+
+            #notificationBadge:not(:empty) {
+                display: block;
+            }
+
+        .shake {
+            animation: shake 0.5s;
+        }
+
+        @@keyframes shake {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            25% {
+                transform: rotate(15deg);
+            }
+
+            50% {
+                transform: rotate(-15deg);
+            }
+
+            75% {
+                transform: rotate(15deg);
+            }
+
+            100% {
+                transform: rotate(0deg);
+            }
+        }
+
+        /* Footer */
+        .footer-bottom {
+            transition: all 0.3s ease;
+        
+        /* Phản hồi */
+        @@media (max-width: 992px) {
+            .navbar-collapse {
+                padding-top: 1rem;
+                border-radius: 0.5rem;
+                margin-top: 0.5rem;
+            }
+
+            body.light-mode .navbar-collapse {
+                background-color: #ffffff;
+            }
+
+            body.dark-mode .navbar-collapse {
+                background-color: rgba(26, 26, 46, 0.98);
+            }
+
+            .notification-dropdown {
+                width: 280px;
+            }
+        
+    </style>
+</head>
+<body class="d-flex flex-column min-vh-100 light-mode">
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-dark">
+            <div class="container">
+
+                <a class="navbar-brand d-flex align-items-center" href="@Url.Action("Index", "Home")">
+                    <img src="~/images/logo5.png" width="40" height="40" class="me-2" alt="Logo" />
+                    <span class="fw-bold logo-text d-none d-sm-inline">Gym-O Community</span>
+                </a>
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent"
+                        aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarContent">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item">
+                            <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Home" ? "active" : "")"
+                               href="@Url.Action("Index", "Home")"><i class="fas fa-home me-1"></i> Trang chủ</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Posts" ? "active" : "")"
+                               href="@Url.Action("Index", "Posts")"><i class="fas fa-comments me-1"></i> Diễn đàn</a>
+                        </li>
+                        <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Nutrition" ? "active" : "")"
+                           href="@Url.Action("Nutrition", "Exercise")">
+                            <i class="fas fa-utensils me-1"></i> Dinh dưỡng
+                        </a>
+                        <li class="nav-item">
+                            <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Exercise" ? "active" : "")"
+                               href="@Url.Action("Index", "Exercise")"><i class="fas fa-dumbbell me-1"></i> Bài tập</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Workout" ? "active" : "")"
+                               href="@Url.Action("Index", "Workout")"><i class="fas fa-running me-1"></i> Tập luyện</a>
+                        </li>
+
+                        <li class="nav-item">
+                            @if (User.Identity.IsAuthenticated)
+                            {
+                                <a class="nav-link text-white" asp-controller="Home" asp-action="Chat">
+                                    💬 Chat Realtime
+                                </a>
+                            }
+                            else
+                            {
+                                <a href="#" class="nav-link text-white" onclick="requireLogin()">
+                                    💬 Chat Realtime
+                                </a>
+                            }
+                        </li>
+
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Profile" ? "active" : "")"
+                                   href="@Url.Action("Index", "Profile", new { userId = User.FindFirstValue(ClaimTypes.NameIdentifier) })">
+                                    <i class="fas fa-user me-1"></i> Cá nhân
+                                </a>
+                            </li>
+                        }
+
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-danger fw-bold" href="/Admin/Dashboard">
+                                    🛠️ Quản trị
+                                </a>
+                            </li>
+                        }
+                    </ul>
+
+         
+
+                    <div class="d-flex align-items-center auth-buttons">
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            <!-- thông báo  Dropdown -->
+                            <div class="dropdown me-3">
+                                <a href="#" class="nav-link position-relative" id="notificationDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-bell"></i>
+                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="notificationBadge">
+                                        0
+                                    </span>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end notification-dropdown" aria-labelledby="notificationDropdown">
+                                    <li><h6 class="dropdown-header">Thông báo mới</h6></li>
+                                    <div id="notificationList" class="px-2 py-1">
+                                        <div class="text-center py-3">
+                                            <div class="spinner-border spinner-border-sm" role="status">
+                                                <span class="visually-hidden">Loading...</span>
+                                            </div>
+                                            <span class="ms-2">Đang tải thông báo...</span>
+                                        </div>
+                                    </div>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item text-center" href="/Notification">Xem tất cả</a></li>
+                                </ul>
+                            </div>
+
+                            <!-- User Account Dropdown -->
+                            <div class="dropdown">
+                                <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle"
+                                   id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-user-circle fa-lg me-1"></i>
+                                    <span class="d-none d-lg-inline">Tài khoản</span>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                    <li>
+                                        <a class="dropdown-item" asp-area="Identity" asp-page="/Account/Manage/Index">
+                                            <i class="fas fa-user-cog me-2"></i> Quản lý tài khoản
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <form asp-area="Identity" asp-page="/Account/Logout"
+                                              asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+                                            <button type="submit" class="dropdown-item">
+                                                <i class="fas fa-sign-out-alt me-2"></i> Đăng xuất
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="d-flex flex-column flex-lg-row">
+                                <a href="/Identity/Account/Login" class="btn btn-outline-primary me-lg-2 mb-2 mb-lg-0">
+                                    <i class="fas fa-sign-in-alt me-1"></i> Đăng nhập
+                                </a>
+                                <a href="/Identity/Account/Register" class="btn btn-danger">
+                                    <i class="fas fa-user-plus me-1"></i> Đăng ký
+                                </a>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+   
+
+    <main class="flex-fill">
+        <div class="container pb-3 pt-3">
+            @RenderBody()
+        </div>
+    </main>
+
+    <footer class="footer-bottom text-center py-3">
+        <div class="container">
+            <p class="mb-0">
+                &copy; @DateTime.Now.Year - GymOCommunity. All rights reserved.
+                <span class="d-block d-sm-inline">
+                    <a href="#" class="mx-2">Điều khoản</a>
+                    <a href="#" class="mx-2">Bảo mật</a>
+                    <a href="#" class="mx-2">Liên hệ</a>
+                </span>
+            </p>
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+
+    <script>
+        
+
+        // Close navbar when clicking on nav links (mobile)
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function () {
+                const navbarCollapse = document.querySelector('.navbar-collapse');
+                if (navbarCollapse.classList.contains('show')) {
+                    const bsCollapse = new bootstrap.Collapse(navbarCollapse, { toggle: false });
+                    bsCollapse.hide();
+                }
+            });
+        });
+
+        // Các chức năng của thông báo 
+        function loadNotifications() {
+            $.get('/Notification/GetRecentNotifications', function(data) {
+                $('#notificationList').html(data);
+                updateNotificationBadge();
+            });
+        }
+
+        function updateNotificationBadge() {
+            $.get('/Notification/GetUnreadCount', function(count) {
+                const badge = $('#notificationBadge');
+                if (count > 0) {
+                    badge.text(count).show();
+                } else {
+                    badge.hide();
+                }
+            });
+        }
+
+        // SignalR cho phản hồi thòi gian thực
+        const notificationConnection = new signalR.HubConnectionBuilder()
+            .withUrl("/notificationHub")
+            .build();
+
+        notificationConnection.on("ReceiveNotification", function(notification) {
+            // Shake bell icon
+            $('#notificationDropdown i').addClass('shake');
+            setTimeout(() => {
+                $('#notificationDropdown i').removeClass('shake');
+            }, 500);
+
+            // Update notifications
+            loadNotifications();
+
+            // Show toast notification
+            showToastNotification(notification);
+        });
+
+        function showToastNotification(notification) {
+            const toast = `
+                <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+                    <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+                        <div class="toast-header">
+                            <strong class="me-auto">Thông báo mới</strong>
+                            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                        <div class="toast-body">
+                            ${notification.message}
+                        </div>
+                    </div>
+                </div>
+            `;
+            $('body').append(toast);
+            setTimeout(() => $('.toast').remove(), 5000);
+        }
+
+        // bắt đầu kết nối SignalR
+        notificationConnection.start().then(function() {
+            const userId = '@User.FindFirstValue(ClaimTypes.NameIdentifier)';
+            if (userId) {
+                notificationConnection.invoke("JoinNotificationGroup", userId);
+            }
+            // Load initial notifications if user is authenticated
+            if ('@User.Identity.IsAuthenticated' === 'True') {
+                loadNotifications();
+            }
+        }).catch(err => console.error(err.toString()));
+
+        // Load notifications when dropdown is opened
+        $('#notificationDropdown').on('click', function() {
+            loadNotifications();
+        });
+    </script>
+
+    
+    @RenderSection("Scripts", required: false)
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function requireLogin() {
+            Swal.fire({
+                title: "⚠️ Bạn cần đăng nhập",
+                text: "Vui lòng đăng nhập để sử dụng tính năng Chat Realtime!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Đăng nhập",
+                cancelButtonText: "Hủy"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = "/Identity/Account/Login";
+                }
+            });
+        }
+    </script>
+
+</body>
+</html>

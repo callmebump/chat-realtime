@@ -1,0 +1,55 @@
+﻿@page
+@model RegisterModel
+
+@{
+    ViewData["Title"] = "Sign Up";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="social-register-form">
+            <h2 class="text-center mb-4">Tham gia với chúng tôi</h2>
+
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <!-- Email Field -->
+            <div class="form-group mb-3">
+                <input asp-for="Input.Email" class="form-control"
+                       placeholder="Email" />
+                <span asp-validation-for="Input.Email" class="text-danger"></span>
+            </div>
+
+            <!-- Password Field -->
+            <div class="form-group mb-3">
+                <input asp-for="Input.Password" class="form-control"
+                       placeholder="Tạo mật khẩu" />
+                <span asp-validation-for="Input.Password" class="text-danger"></span>
+            </div>
+
+            <!-- Confirm Password Field (ẩn đi và validate phía server) -->
+            <input asp-for="Input.ConfirmPassword" type="hidden" value="auto-fill" />
+
+            <button id="registerSubmit" type="submit" class="w-100 btn btn-lg btn-primary mb-3"
+                    style="background-color: #1877f2;">
+                Đăng ký
+            </button>
+
+            <div class="text-center">
+                <hr />
+                <p>Đã có tài khoản? <a asp-page="./Login">Đăng nhập </a></p>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        // Auto-fill confirm password khi người dùng nhập password
+        document.getElementById('Input_Password').addEventListener('input', function() {
+            document.getElementById('Input_ConfirmPassword').value = this.value;
+        });
+    </script>
+}

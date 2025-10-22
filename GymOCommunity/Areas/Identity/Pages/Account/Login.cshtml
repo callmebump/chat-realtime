@@ -1,0 +1,56 @@
+﻿@page
+@model LoginModel
+
+@{
+    ViewData["Title"] = "Log in";
+}
+
+<div class="row justify-content-center">
+   
+    <div class="col-md-4">
+        <section>
+            <form id="account" method="post" class="social-login-form">
+              
+                <h2 class="text-center">XIN CHÀO</h2> 
+
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                @* Email/Username field *@
+                <div class="form-group mb-3">
+                    <input asp-for="Input.Email" class="form-control"
+                           placeholder="Email or username" /> @* Placeholder gợi ý *@
+                    <span asp-validation-for="Input.Email" class="text-danger"></span>
+                </div>
+
+                @* Password field *@
+                <div class="form-group mb-3">
+                    <input asp-for="Input.Password" class="form-control"
+                           placeholder="Password" />
+                    <span asp-validation-for="Input.Password" class="text-danger"></span>
+                </div>
+
+               
+                <button type="submit" class="w-100 btn btn-lg btn-primary mb-3"
+                        style="background-color: #1877f2;">
+       
+                    Đăng nhập
+                </button>
+
+              
+                <div class="form-check mb-3">
+                    <input class="form-check-input" asp-for="Input.RememberMe" />
+                    <label class="form-check-label" asp-for="Input.RememberMe">
+						Giữ đăng nhập
+                    </label>
+                </div>
+
+             
+                <div class="text-center">
+                    <a href="#" class="d-block mb-2">Bạn quên mật khẩu?</a>
+                    <hr />
+                    <a asp-page="./Register" class="btn btn-success">Chưa có tài khoản? hãy là thành viên của chúng tôi </a>
+                </div>
+            </form>
+        </section>
+    </div>
+</div>
