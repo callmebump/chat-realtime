@@ -52,6 +52,12 @@ app.post("/upload", upload.single("file"), (req, res) => {
     }
 });
 
+// ✅ Route kiểm tra server hoạt động
+app.get("/", (req, res) => {
+    res.send("🚀 Chat server is running successfully!");
+});
+
+
 // Cho phép truy cập file tĩnh (ảnh/video/file)
 app.use("/uploads", express.static(uploadDir));
 
